@@ -12,7 +12,6 @@ export async function findByIdForUpdate(
   return res.rows[0] || null;
 }
 
-// Read-only fetch, no lock
 export async function findById(
   client: PoolClient,
   id: number

@@ -1,36 +1,175 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Wallet API
 
-## Getting Started
+A wallet API built with Next.js and PostgreSQL that supports deposits and transfers between accounts, with full double-entry bookkeeping via a ledger.
 
-First, run the development server:
+---
+
+## Prerequisites
+
+- Node.js 18+
+- PostgreSQL 14+
+- npm
+
+---
+
+## Setup Instructions
+
+### 1. Clone the repository
+
+```bash
+git clone git@github-personal:kalvin-osoro/wallet-api.git
+cd wallet-api
+```
+
+### 2. Install dependencies
+
+```bash
+npm install
+```
+
+### 3. Configure environment variables
+
+Create a `.env.local` file in the root of the project:
+
+```env
+DATABASE_URL=postgres://<user>:<password>@<host>:<port>/<database>
+```
+
+Example:
+
+```env
+DATABASE_URL=postgres://postgres:password@localhost:5432/wallet_db
+```
+
+### 4. Set up the database
+
+Create the database in PostgreSQL:
+
+```bash
+psql -U postgres -c "CREATE DATABASE wallet_db;"
+```
+
+Run the schema:
+
+```bash
+psql -U postgres -d wallet_db -f schema.sql
+```
+
+### 5. Run the development server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The API will be available at `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Database Schema
 
-## Learn More
+The schema is defined in `schema.sql` and creates three tables:
 
-To learn more about Next.js, take a look at the following resources:
+- `accounts` — stores account holders and their balances
+- `transactions` — a header record for each deposit or transfer
+- `ledger_entries` — double-entry records (debit/credit) linked to each transaction
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## API Endpoints
 
-## Deploy on Vercel
+### `POST /api/deposit`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Credits an account with a given amount.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Request body:**
+
+```json
+{
+  "account_id": 1,
+  "amount": 500
+}
+```
+
+**Response:**
+
+```json
+{
+  "message": "Deposit successful",
+  "amount": 500,
+  "account_id": 1
+}
+```
+
+---
+
+### `POST /api/transfer`
+
+Transfers an amount from one account to another.
+
+**Request body:**
+
+```json
+{
+  "sender_id": 1,
+  "receiver_id": 2,
+  "amount": 100
+}
+```
+
+**Response:**
+
+```json
+{
+  "message": "Transfer successful",
+  "amount": 100,
+  "sender_id": 1,
+  "receiver_id": 2
+}
+```
+
+---
+
+## Example Requests
+
+### Deposit — cURL
+
+```bash
+curl -X POST http://localhost:3000/api/deposit \
+  -H "Content-Type: application/json" \
+  -d '{"account_id": 1, "amount": 500}'
+```
+
+### Transfer — cURL
+
+```bash
+curl -X POST http://localhost:3000/api/transfer \
+  -H "Content-Type: application/json" \
+  -d '{"sender_id": 1, "receiver_id": 2, "amount": 100}'
+```
+
+
+## Project Structure
+
+```
+wallet-api/
+├── pages/
+│   └── api/
+│       ├── deposit.ts
+│       └── transfer.ts
+├── src/
+│   ├── infrastructure/
+│   │   └── db/
+│   │       ├── pool.ts
+│   │       └── transaction.ts
+│   └── modules/
+│       ├── accounts/
+│       │   ├── account.repository.ts
+│       │   └── account.types.ts
+│       └── transactions/
+│           ├── transaction.repository.ts
+│           ├── transaction.service.ts
+│           └── transaction.types.ts
+├── schema.sql
+├── .env
+└── README.md
+```

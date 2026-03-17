@@ -6,7 +6,6 @@ import { DepositInput, TransferInput } from './transaction.types';
 export async function transfer(input: TransferInput) {
   const { sender_id, receiver_id, amount } = input;
 
- // Edge case guards
   if (!sender_id || !receiver_id) throw new Error('sender_id and receiver_id are required');
   if (typeof amount !== 'number' || isNaN(amount)) throw new Error('Amount must be a number');
   if (amount <= 0) throw new Error('Amount must be greater than zero');
@@ -25,7 +24,6 @@ export async function transfer(input: TransferInput) {
       ? await accountRepo.findByIdForUpdate(client, receiver_id)
       : await accountRepo.findByIdForUpdate(client, sender_id);
 
-       // Simpler: just fetch both with FOR UPDATE
     const senderAccount = await accountRepo.findByIdForUpdate(client, sender_id);
     const receiverAccount = await accountRepo.findByIdForUpdate(client, receiver_id);
 
@@ -37,7 +35,6 @@ export async function transfer(input: TransferInput) {
     await accountRepo.debit(client, sender_id, amount);
     await accountRepo.credit(client, receiver_id, amount);
 
-    // Record the transaction
     await transactionRepo.recordTransaction(client, {
       sender_id,
       receiver_id,
@@ -52,7 +49,6 @@ export async function transfer(input: TransferInput) {
 export async function deposit(input: DepositInput) {
   const { account_id, amount } = input;
 
-  // Edge case guards
   if (!account_id) throw new Error('account_id is required');
   if (typeof amount !== 'number' || isNaN(amount)) throw new Error('Amount must be a number');
   if (amount <= 0) throw new Error('Amount must be greater than zero');
@@ -64,7 +60,6 @@ export async function deposit(input: DepositInput) {
 
     await accountRepo.credit(client, account_id, amount);
 
-    // Record the transaction — sender_id is null for deposits
     await transactionRepo.recordTransaction(client, {
       sender_id: null,
       receiver_id: account_id,

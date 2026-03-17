@@ -1,5 +1,5 @@
 export interface Account {
   id: number;
-  owner: string;
+  name: string;
   balance: number;
 }
