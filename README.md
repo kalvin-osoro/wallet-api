@@ -29,7 +29,7 @@ npm install
 
 ### 3. Configure environment variables
 
-Create a `.env.local` file in the root of the project:
+Create a `.env` file in the root of the project:
 
 ```env
 DATABASE_URL=postgres://<user>:<password>@<host>:<port>/<database>
